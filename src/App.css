@@ -314,8 +314,7 @@ body {
   height: auto;
 }
 
-
-
+/* HEADER */
 
 .game-header {
   width: 100%;
@@ -323,8 +322,7 @@ body {
   padding: 0 16px;
   box-sizing: border-box;
 
-  background: #27205F 
-              #0A0720;
+  background: rgba(0,0,0,0.12);
 
   border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 
@@ -334,19 +332,29 @@ body {
   box-shadow: 0 8px 10px rgba(0, 0, 0, 0.12);
 }
 
+/* TOP BAR */
+
 .top-bar {
   width: 100%;
   height: 38px;
 
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-end; /* ❗ обе кнопки справа */
   gap: 10px;
+
+  padding-right: 8px; /* аккуратный отступ */
 }
+
+/* КНОПКИ */
 
 .top-bar button {
   width: 38px;
   height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+
+  flex-shrink: 0;
 
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.22);
@@ -368,6 +376,8 @@ body {
   transform: scale(1.07);
 }
 
+/* CONTENT */
+
 .game-content {
   width: 100%;
   padding: 14px 16px;
@@ -376,7 +386,7 @@ body {
   justify-content: center;
 }
 
-
+/* FOOTER */
 
 .game-footer {
   width: 100%;
@@ -385,17 +395,16 @@ body {
   box-sizing: border-box;
 
   border-top: 1px solid rgba(255,255,255,0.12);
-  
+  background: rgba(0,0,0,0.08);
 
   display: flex;
   justify-content: center;
   align-items: center;
 
-  /* тень вверх */
   box-shadow: 0 -8px 10px rgba(0, 0, 0, 0.12);
 }
 
-
+/* STATUS */
 
 .status-text {
   font-size: 14px;
@@ -403,11 +412,4 @@ body {
 
   opacity: 0.85;
   text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-.top-bar  :first-child {
-  margin-left: 267px;
-}
-.top-bar  :last-child {
-  margin-right: 8px;
 }

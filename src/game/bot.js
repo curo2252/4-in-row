@@ -3,20 +3,24 @@ import { checkWinner } from "./winner";
 import { evaluateBoard } from "./evaluate";
 import { getCandidateMoves, getEmptyCells } from "./utils";
 
+function randomFrom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 export function getBestMove(board) {
   const empty = getEmptyCells(board);
   if (empty.length === 0) return null;
 
-  if (empty.length === SIZE * SIZE) return 27;
+  if (empty.length === SIZE * SIZE) {
+    return randomFrom([27, 28, 35, 36]);
+  }
 
-  // 1. если бот может выиграть — сразу ходит
   for (let move of empty) {
     const test = [...board];
     test[move] = BOT;
     if (checkWinner(test) === BOT) return move;
   }
 
-  // 2. если игрок может выиграть — сразу блокируем
   for (let move of empty) {
     const test = [...board];
     test[move] = HUMAN;
@@ -24,12 +28,10 @@ export function getBestMove(board) {
   }
 
   const cache = new Map();
-
-  // было 14, потом 10 — оставляем 10
   const moves = getCandidateMoves(board, 10);
 
   let bestScore = -Infinity;
-  let bestMove = moves[0];
+  let bestMoves = [];
 
   for (let move of moves) {
     const newBoard = [...board];
@@ -46,11 +48,13 @@ export function getBestMove(board) {
 
     if (score > bestScore) {
       bestScore = score;
-      bestMove = move;
+      bestMoves = [move];
+    } else if (score === bestScore) {
+      bestMoves.push(move);
     }
   }
 
-  return bestMove;
+  return randomFrom(bestMoves);
 }
 
 function minimax(board, depth, isBotTurn, alpha, beta, cache) {
@@ -70,7 +74,6 @@ function minimax(board, depth, isBotTurn, alpha, beta, cache) {
     return value;
   }
 
-  // чем глубже, тем меньше вариантов смотрим
   const moves = getCandidateMoves(board, depth >= 3 ? 7 : 4);
 
   if (moves.length === 0) {
