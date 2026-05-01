@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">four in row</string>
+    <string name="title_activity_main">four in row</string>
+    <string name="package_name">com.game.forinrow</string>
+    <string name="custom_url_scheme">com.game.forinrow</string>
+</resources>

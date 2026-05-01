@@ -1,0 +1,413 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(
+    to top,
+    #9C92C7 0%,
+    #6448A0 40%,
+    #27205F 70%,
+    #0A0720 100%
+  );
+  background-attachment: fixed;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+}
+
+.wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main {
+  width: 100%;
+  max-width: 390px;
+  max-height: calc(100vh - 20px);
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.06)
+  );
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 22px;
+
+  box-shadow:
+    0 25px 70px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board {
+  width: min(88vw, 340px, 60vh);
+  aspect-ratio: 1 / 1;
+
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.17),
+    rgba(255,255,255,0.06)
+  );
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255,255,255,0.24);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 6px 14px rgba(0,0,0,0.12);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cell:hover {
+ 
+  background: rgba(255,255,255,0.22);
+}
+
+.piece {
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+
+  /* мягкая тень как во втором примере */
+  box-shadow:
+    6px 6px 14px rgba(0,0,0,0.35),
+    -4px -4px 10px rgba(255,255,255,0.04);
+
+  transition: 0.2s ease;
+}
+
+.piece.red {
+  background: linear-gradient(
+    135deg,
+    #a78bfa,
+    #7c3aed
+  );
+}
+
+.piece.blue {
+  background: linear-gradient(
+    135deg,
+    #2f2670,
+    #1E174F
+  );
+}
+
+.status {
+  margin-top: 14px;
+  font-size: 15px;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.controls {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button {
+  width: 120px;
+  height: 42px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.28),
+    rgba(255,255,255,0.12)
+  );
+
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 14px;
+
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  
+}
+
+
+
+@keyframes toastWin {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-height: 650px) {
+  .main {
+    padding: 10px;
+  }
+
+  .board {
+    width: min(86vw, 310px, 55vh);
+    gap: 4px;
+  }
+
+  .cell {
+    border-radius: 10px;
+  }
+
+  .status {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .button {
+    height: 38px;
+    font-size: 14px;
+  }
+}
+
+.main {
+  position: relative;
+}
+
+.menu {
+  gap: 12px;
+}
+
+.menu-title {
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.menu-button {
+  width: 100%;
+  height: 52px;
+
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 16px;
+
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  transition: 0.2s ease;
+}
+
+.menu-button:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.02);
+}
+
+
+
+.floating-controls button {
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+
+  background: rgba(255,255,255,0.08);
+  color: white;
+
+  font-size: 16px;
+
+  backdrop-filter: blur(8px);
+
+  transition: 0.2s;
+}
+
+.floating-controls button:hover {
+  background: rgba(255,255,255,0.18);
+ 
+}
+
+.game-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+
+
+
+.game-header {
+  width: 100%;
+  height: 62px;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  background: #27205F 
+              #0A0720;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+
+  display: flex;
+  align-items: center;
+
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.12);
+}
+
+.top-bar {
+  width: 100%;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.top-bar button {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.22);
+
+  background: rgba(255,255,255,0.12);
+  color: white;
+
+  font-size: 19px;
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  transition: 0.2s ease;
+}
+
+.top-bar button:hover {
+  background: rgba(255,255,255,0.22);
+  transform: scale(1.07);
+}
+
+.game-content {
+  width: 100%;
+  padding: 14px 16px;
+
+  display: flex;
+  justify-content: center;
+}
+
+
+
+.game-footer {
+  width: 100%;
+  height: 62px;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  border-top: 1px solid rgba(255,255,255,0.12);
+  
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* тень вверх */
+  box-shadow: 0 -8px 10px rgba(0, 0, 0, 0.12);
+}
+
+
+
+.status-text {
+  font-size: 14px;
+  font-weight: 600;
+
+  opacity: 0.85;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.top-bar  :first-child {
+  margin-left: 267px;
+}
+.top-bar  :last-child {
+  margin-right: 8px;
+}
