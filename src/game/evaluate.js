@@ -44,14 +44,14 @@ function evaluateLine(cells) {
   if (botCount > 0 && humanCount > 0) return 0;
 
   if (botCount === 4) return 100000;
-  if (botCount === 3 && emptyCount === 1) return 1400;
-  if (botCount === 2 && emptyCount === 2) return 150;
-  if (botCount === 1 && emptyCount === 3) return 10;
+  if (botCount === 3 && emptyCount === 1) return 8000;
+  if (botCount === 2 && emptyCount === 2) return 650;
+  if (botCount === 1 && emptyCount === 3) return 25;
 
   if (humanCount === 4) return -100000;
-  if (humanCount === 3 && emptyCount === 1) return -1800;
-  if (humanCount === 2 && emptyCount === 2) return -200;
-  if (humanCount === 1 && emptyCount === 3) return -12;
+  if (humanCount === 3 && emptyCount === 1) return -12000;
+  if (humanCount === 2 && emptyCount === 2) return -900;
+  if (humanCount === 1 && emptyCount === 3) return -30;
 
   return 0;
 }

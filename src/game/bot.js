@@ -7,6 +7,50 @@ function randomFrom(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+function getWinningMoves(board, player) {
+  const empty = getEmptyCells(board);
+  const wins = [];
+
+  for (let move of empty) {
+    const test = [...board];
+    test[move] = player;
+
+    if (checkWinner(test) === player) {
+      wins.push(move);
+    }
+  }
+
+  return wins;
+}
+
+function createsDoubleThreat(board, move, player) {
+  const test = [...board];
+  test[move] = player;
+
+  return getWinningMoves(test, player).length >= 2;
+}
+
+function opponentCanForceWin(board) {
+  const humanMoves = getCandidateMoves(board, 12);
+
+  for (let move of humanMoves) {
+    const test = [...board];
+    test[move] = HUMAN;
+
+    if (checkWinner(test) === HUMAN) {
+      return true;
+    }
+
+    const wins = getWinningMoves(test, HUMAN);
+
+    if (wins.length >= 2) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function getBestMove(board) {
   const empty = getEmptyCells(board);
   if (empty.length === 0) return null;
@@ -27,17 +71,29 @@ export function getBestMove(board) {
     if (checkWinner(test) === HUMAN) return move;
   }
 
+  for (let move of empty) {
+    if (createsDoubleThreat(board, move, BOT)) {
+      return move;
+    }
+  }
+
+  for (let move of empty) {
+    if (createsDoubleThreat(board, move, HUMAN)) {
+      return move;
+    }
+  }
+
   const cache = new Map();
-  const moves = getCandidateMoves(board, 10);
+  const moves = getCandidateMoves(board, 16);
 
   let bestScore = -Infinity;
-  let bestMoves = [];
+  let scoredMoves = [];
 
   for (let move of moves) {
     const newBoard = [...board];
     newBoard[move] = BOT;
 
-    const score = minimax(
+    let score = minimax(
       newBoard,
       AI_DEPTH - 1,
       false,
@@ -46,15 +102,34 @@ export function getBestMove(board) {
       cache
     );
 
+    if (createsDoubleThreat(board, move, BOT)) {
+      score += 7000;
+    }
+
+    if (opponentCanForceWin(newBoard)) {
+      score -= 15000;
+    }
+
+    const humanDanger = getCandidateMoves(newBoard, 12).some((humanMove) =>
+      createsDoubleThreat(newBoard, humanMove, HUMAN)
+    );
+
+    if (humanDanger) {
+      score -= 7000;
+    }
+
+    scoredMoves.push({ move, score });
+
     if (score > bestScore) {
       bestScore = score;
-      bestMoves = [move];
-    } else if (score === bestScore) {
-      bestMoves.push(move);
     }
   }
 
-  return randomFrom(bestMoves);
+  const goodMoves = scoredMoves
+    .filter((item) => bestScore - item.score <= 20)
+    .map((item) => item.move);
+
+  return randomFrom(goodMoves);
 }
 
 function minimax(board, depth, isBotTurn, alpha, beta, cache) {
@@ -74,7 +149,7 @@ function minimax(board, depth, isBotTurn, alpha, beta, cache) {
     return value;
   }
 
-  const moves = getCandidateMoves(board, depth >= 3 ? 7 : 4);
+  const moves = getCandidateMoves(board, depth >= 3 ? 10 : 7);
 
   if (moves.length === 0) {
     const value = evaluateBoard(board);
