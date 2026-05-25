@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 import { SIZE, BOT, HUMAN } from "./constants";
@@ -6,6 +6,8 @@ import Board from "./components/Board";
 import { getBestMove } from "./game/bot";
 import { checkWinner } from "./game/winner";
 import { socket } from "./socket";
+
+let bgAudio = null;
 
 export default function FourInRow() {
   const [screen, setScreen] = useState("menu");
@@ -15,6 +17,12 @@ export default function FourInRow() {
 
   const [roomCode, setRoomCode] = useState("");
   const [onlinePlayer, setOnlinePlayer] = useState(null);
+  const [joinCode, setJoinCode] = useState("");
+  const [onlineLoading, setOnlineLoading] = useState(false);
+  const [onlineMessage, setOnlineMessage] = useState("");
+
+  const audioRef = useRef(null);
+  const [muted, setMuted] = useState(false);
 
   const winner = checkWinner(board);
 
@@ -41,19 +49,27 @@ export default function FourInRow() {
     setMode(null);
     setRoomCode("");
     setOnlinePlayer(null);
+    setJoinCode("");
+    setOnlineLoading(false);
+    setOnlineMessage("");
     setScreen("menu");
   };
 
   const createOnlineRoom = () => {
+    setOnlineLoading(true);
+    setOnlineMessage("Создаём комнату...");
     socket.emit("create-room");
   };
 
   const joinOnlineRoom = () => {
-    const code = prompt("Введите код комнаты");
-
-    if (code) {
-      socket.emit("join-room", code.toUpperCase());
+    if (!joinCode.trim()) {
+      setOnlineMessage("Введите код комнаты");
+      return;
     }
+
+    setOnlineLoading(true);
+    setOnlineMessage("Подключаемся...");
+    socket.emit("join-room", joinCode.trim().toUpperCase());
   };
 
   const handleClick = (index) => {
@@ -65,12 +81,6 @@ export default function FourInRow() {
       const currentPlayer = isRed ? HUMAN : BOT;
 
       if (currentPlayer !== onlinePlayer) return;
-
-      const newBoard = [...board];
-      newBoard[index] = onlinePlayer;
-
-      setBoard(newBoard);
-      setIsRed(!isRed);
 
       socket.emit("online-move", {
         roomCode,
@@ -89,48 +99,81 @@ export default function FourInRow() {
   };
 
   useEffect(() => {
+    if (!bgAudio) {
+      bgAudio = new Audio("/audio/background.mp3");
+      bgAudio.loop = true;
+      bgAudio.volume = 0.03;
+    }
+
+    audioRef.current = bgAudio;
+    setMuted(bgAudio.paused);
+
+    const startMusic = () => {
+      if (!bgAudio || !bgAudio.paused) return;
+
+      bgAudio.play().then(() => {
+        setMuted(false);
+      }).catch(() => {});
+    };
+
+    window.addEventListener("click", startMusic, { once: true });
+
+    return () => {
+      window.removeEventListener("click", startMusic);
+    };
+  }, []);
+
+  useEffect(() => {
     socket.on("connect", () => {
       console.log("Подключено:", socket.id);
     });
 
-    socket.on("room-created", ({ roomCode, player }) => {
+    socket.on("room-created", ({ roomCode, player, board, turn }) => {
       console.log("Комната создана:", roomCode, "Ты:", player);
+
       setRoomCode(roomCode);
       setOnlinePlayer(player);
       setMode("online");
-      resetGame();
+      setBoard(board || Array(SIZE * SIZE).fill(null));
+      setIsRed(turn ? turn === HUMAN : true);
+      setOnlineLoading(false);
+      setOnlineMessage("Ожидание второго игрока...");
       setScreen("game");
     });
 
-    socket.on("room-joined", ({ roomCode, player }) => {
+    socket.on("room-joined", ({ roomCode, player, board, turn }) => {
       console.log("Ты вошёл в комнату:", roomCode, "Ты:", player);
+
       setRoomCode(roomCode);
       setOnlinePlayer(player);
       setMode("online");
-      resetGame();
+      setBoard(board || Array(SIZE * SIZE).fill(null));
+      setIsRed(turn ? turn === HUMAN : true);
+      setOnlineLoading(false);
+      setOnlineMessage("");
       setScreen("game");
     });
 
-    socket.on("game-start", ({ roomCode }) => {
+    socket.on("game-start", ({ roomCode, board, turn }) => {
       console.log("Игра началась в комнате:", roomCode);
+
+      if (board) setBoard(board);
+      if (turn) setIsRed(turn === HUMAN);
+      setOnlineMessage("");
     });
 
-    socket.on("opponent-move", ({ index, player }) => {
-      setBoard((prev) => {
-        const newBoard = [...prev];
+    socket.on("move-made", ({ board, turn }) => {
+      setBoard(board);
+      setIsRed(turn === HUMAN);
+    });
 
-        if (!newBoard[index]) {
-          newBoard[index] = player;
-        }
-
-        return newBoard;
-      });
-
-      setIsRed((prev) => !prev);
+    socket.on("opponent-left", () => {
+      setOnlineMessage("Соперник вышел из комнаты");
     });
 
     socket.on("room-error", (message) => {
-      alert(message);
+      setOnlineLoading(false);
+      setOnlineMessage(message);
     });
 
     return () => {
@@ -138,7 +181,8 @@ export default function FourInRow() {
       socket.off("room-created");
       socket.off("room-joined");
       socket.off("game-start");
-      socket.off("opponent-move");
+      socket.off("move-made");
+      socket.off("opponent-left");
       socket.off("room-error");
     };
   }, []);
@@ -179,13 +223,36 @@ export default function FourInRow() {
             1 на 1
           </button>
 
-          <button className="menu-button" onClick={createOnlineRoom}>
-            Создать комнату
-          </button>
+          <div className="online-panel">
+            <button
+              className="menu-button"
+              onClick={createOnlineRoom}
+              disabled={onlineLoading}
+            >
+              {onlineLoading ? "Подождите..." : "Создать комнату"}
+            </button>
 
-          <button className="menu-button" onClick={joinOnlineRoom}>
-            Войти по коду
-          </button>
+            <input
+              className="room-input"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="КОД КОМНАТЫ"
+              maxLength={5}
+              disabled={onlineLoading}
+            />
+
+            <button
+              className="menu-button"
+              onClick={joinOnlineRoom}
+              disabled={onlineLoading}
+            >
+              Войти
+            </button>
+
+            {onlineMessage && (
+              <div className="online-message">{onlineMessage}</div>
+            )}
+          </div>
         </div>
       )}
 
@@ -193,6 +260,25 @@ export default function FourInRow() {
         <div className="main game-card">
           <div className="game-header">
             <div className="top-bar">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  if (!audioRef.current) return;
+
+                  if (audioRef.current.paused) {
+                    audioRef.current.play().then(() => {
+                      setMuted(false);
+                    }).catch(() => {});
+                  } else {
+                    audioRef.current.pause();
+                    setMuted(true);
+                  }
+                }}
+              >
+                {muted ? "🔇" : "🔊"}
+              </button>
+
               <button onClick={resetGame}>↺</button>
               <button onClick={exitToMenu}>✕</button>
             </div>
@@ -207,9 +293,7 @@ export default function FourInRow() {
               {winner
                 ? winnerText
                 : mode === "online"
-                ? roomCode
-                  ? `Комната: ${roomCode}`
-                  : ""
+                ? onlineMessage || (roomCode ? `Комната: ${roomCode}` : "")
                 : ""}
             </div>
           </div>
