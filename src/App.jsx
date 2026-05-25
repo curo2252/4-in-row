@@ -108,21 +108,21 @@ export default function FourInRow() {
     audioRef.current = bgAudio;
     setMuted(bgAudio.paused);
 
-    const startMusic = () => {
+    const startMusic = async () => {
       if (!bgAudio || !bgAudio.paused) return;
 
-      bgAudio.play().then(() => {
+      try {
+        await bgAudio.play();
         setMuted(false);
-      }).catch(() => {});
+      } catch (e) {
+        console.log("Autoplay blocked");
+      }
     };
 
-    window.addEventListener("click", startMusic, { once: true });
+    startMusic();
 
-    return () => {
-      window.removeEventListener("click", startMusic);
-    };
-  }, []);
-
+    return () => {};
+    }, []);
   useEffect(() => {
     socket.on("connect", () => {
       console.log("Подключено:", socket.id);
@@ -293,7 +293,9 @@ export default function FourInRow() {
               {winner
                 ? winnerText
                 : mode === "online"
-                ? onlineMessage || (roomCode ? `Комната: ${roomCode}` : "")
+                ? roomCode
+                  ? `Комната: ${roomCode}${onlineMessage ? ` — ${onlineMessage}` : ""}`
+                  : onlineMessage
                 : ""}
             </div>
           </div>
