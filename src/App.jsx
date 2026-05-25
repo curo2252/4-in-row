@@ -106,7 +106,6 @@ export default function FourInRow() {
     }
 
     audioRef.current = bgAudio;
-    setMuted(bgAudio.paused);
 
     const startMusic = async () => {
       if (!bgAudio || !bgAudio.paused) return;
@@ -114,7 +113,7 @@ export default function FourInRow() {
       try {
         await bgAudio.play();
         setMuted(false);
-      } catch (e) {
+      } catch {
         console.log("Autoplay blocked");
       }
     };
